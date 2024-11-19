@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AsisteID-Escanear</title>
+    <link rel="icon" href="icono.png" type="image/png">
+    <script src="https://cdn.jsdelivr.net/npm/jsqr/dist/jsQR.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        #video {
+            display: none;
+            width: 320px;
+            height: 240px;
+        }
+
+        #status {
+            margin-top: 20px;
+            color: green;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        #video {
+            display: none;
+            width: 320px;
+            height: 240px;
+        }
+
+        #status {
+            margin-top: 20px;
+            color: green;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        /* Estilos de fondo */
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+            background-color: #E6007E;
+            /* Rosa mexicano */
+            color: #000000;
+            margin: 0;
+            height: 100%;
+        }
+
+        h1,
+        h2,
+        p {
+            color: #000000;
+        }
+
+        /* Estilos para el menú lateral */
+        #sidebar {
+            height: 100%;
+            width: 250px;
+            position: fixed;
+            top: 0;
+            left: -250px;
+            background-color: #fff;
+            color: #E6007E;
+            /* Rosa mexicano para los textos */
+            padding-top: 20px;
+            transition: 0.3s;
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.5);
+            z-index: 10000;
+            /* Asegura que el menú esté sobre el contenido */
+            /* Asegura que el menú esté sobre el contenido */
+        }
+
+        #sidebar a {
+            padding: 15px 25px;
+            text-decoration: none;
+            font-size: 18px;
+            color: #E6007E;
+            display: block;
+            transition: 0.3s;
+        }
+
+        #sidebar a:hover {
+            background-color: #FFC0CB;
+            /* Rosa claro */
+        }
+
+        /* Asegura que el contenido principal esté debajo del menú */
+        #main-content {
+            padding: 30px;
+            transition: margin-left 0.3s;
+            margin-left: 0;
+            background-color: #fff;
+            /* Fondo blanco para el contenido principal */
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            z-index: 500;
+            /* Valor menor que el z-index del menú */
+        }
+
+        /* Botón de menú redondo */
+        #menuBtn,
+        #closeBtn {
+            font-size: 30px;
+            cursor: pointer;
+            padding: 10px;
+            background-color: #fff;
+            /* Fondo blanco */
+            color: #E6007E;
+            /* Texto en rosa mexicano */
+            border: none;
+            border-radius: 50%;
+            position: absolute;
+            top: 10px;
+        }
+
+        #menuBtn {
+            left: 20px;
+        }
+
+        #closeBtn {
+            right: 20px;
+        }
+
+        #sidebar.open {
+            left: 0;
+        }
+
+        #main-content.open {
+            margin-left: 250px;
+        }
+
+        /* Botón con puntas redondeadas */
+        #startCamera {
+            padding: 10px 20px;
+            font-size: 18px;
+            background-color: #FFC0CB;
+            /* Rosa mexicano */
+            color: rgb(31, 30, 30);
+            border: none;
+            border-radius: 20px;
+            /* Puntas redondeadas */
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        /* Contenedor de botones */
+        .botones {
+            display: flex;
+            justify-content: center;
+            /* Centra los botones horizontalmente */
+            align-items: center;
+            /* Centra los botones verticalmente */
+            gap: 15px;
+            /* Espacio entre los botones */
+            flex-wrap: wrap;
+            /* Permite que los botones se ajusten si el tamaño de la pantalla es pequeño */
+            margin-top: 20px;
+            /* Espacio superior */
+        }
+
+        /* Estilo para el botón de escanear con cámara */
+        .scan-button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #F8D9E5;
+            /* Rosa palo */
+            color: #E6007E;
+            /* Texto en rosa fuerte */
+            border: 2px solid #F8D9E5;
+            /* Borde rosa palo */
+            border-radius: 25px;
+            /* Bordes redondeados */
+            cursor: pointer;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+
+        /* Estilo para el botón de eliminar seleccionados */
+        .delete-btn {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #F8D9E5;
+            /* Rosa palo */
+            color: #E6007E;
+            /* Texto en rosa fuerte */
+            border: 2px solid #F8D9E5;
+            /* Borde rosa palo */
+            border-radius: 25px;
+            /* Bordes redondeados */
+            cursor: pointer;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+
+        /* Estilo para el hover de los botones */
+        .scan-button:hover,
+        .delete-btn:hover {
+            background-color: #E6007E;
+            /* Fondo rosa fuerte */
+            color: #fff;
+            /* Texto blanco */
+            border: 2px solid #E6007E;
+            /* Borde rosa fuerte */
+        }
+
+        /* Estilo para la etiqueta de elegir archivo */
+        .label-file {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #F8D9E5;
+            /* Rosa palo */
+            color: #E6007E;
+            /* Texto rosa fuerte */
+            border: 2px solid #F8D9E5;
+            /* Borde rosa palo */
+            border-radius: 25px;
+            /* Bordes redondeados */
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-block;
+            text-align: center;
+        }
+
+        /* Estilo para el hover de la etiqueta */
+        .label-file:hover {
+            background-color: #E6007E;
+            /* Fondo rosa fuerte */
+            color: #fff;
+            /* Texto blanco */
+            border: 2px solid #E6007E;
+            /* Borde rosa fuerte */
+        }
+
+        #startCamera:hover {
+            background-color: #e08f9d;
+            /* Rosa claro */
+        }
+
+        /* Estilos adicionales */
+        #video {
+            display: none;
+            width: 320px;
+            height: 240px;
+        }
+
+        #status {
+            margin-top: 20px;
+            color: green;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        /* Estilos para el contenedor del CURP */
+        #curpContainer {
+            margin-top: 20px;
+        }
+
+        #saveCurp {
+
+            padding: 10px 20px;
+            font-size: 18px;
+            background-color: #FFC0CB;
+            /* Rosa mexicano */
+            color: rgb(31, 30, 30);
+            ;
+            border: none;
+            border-radius: 20px;
+            /* Puntas redondeadas */
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        #saveCurp:hover {
+            background-color: #e08f9d;
+            /* Rosa claro */
+        }
+
+        /* Estilos para la tabla */
+.table-container {
+    width: 100%;
+    overflow-x: auto;
+    margin: 20px 0;
+}
+
+table {
+    width: 100%;
+    max-width: 800px;  /* Aumentado el máximo para pantallas grandes */
+    border-collapse: collapse;
+    background-color: white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin: 0 auto;
+    word-wrap: break-word;  /* Asegura que las palabras largas no se salgan de la celda */
+    table-layout: fixed;  /* Hace que las celdas sean más flexibles */
+}
+
+th, td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+    word-wrap: break-word;
+}
+
+th {
+    background-color: #f2f2f2;
+    color: #800080; /* Morado DIF */
+    text-align: center;
+}
+
+/* Media queries para dispositivos móviles */
+@media (max-width: 600px) {
+    table, th, td {
+        font-size: 14px;
+    }
+
+    th, td {
+        padding: 8px 10px; /* Ajusta el padding para pantallas pequeñas */
+    }
+
+    /* Hace que la tabla sea desplazable horizontalmente en dispositivos móviles */
+    .table-container {
+        -webkit-overflow-scrolling: touch;
+        overflow-x: auto;
+    }
+
+    /* Ajuste de la apariencia de la tabla para pantallas pequeñas */
+    table {
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+    }
+
+    th {
+        font-size: 14px;
+    }
+
+    td {
+        font-size: 14px;
+    }
+}
+
+
+/* Ventana emergente de la cámara */
+#cameraContainer {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: rgb(255, 255, 255);
+    padding: 20px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+}
+
+#closeCamera {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    cursor: pointer;
+    border-radius: 3px;
+    margin-top: 10px;
+}
+
+/* Adaptación para dispositivos móviles */
+@media (max-width: 600px) {
+    body {
+        padding: 10px;
+    }
+
+    h1 {
+        font-size: 2em;
+    }
+
+    table, th, td {
+        font-size: 14px;
+    }
+
+    .buttons-container {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    #cameraContainer {
+        width: 70%; /* Reduce el ancho de la ventana emergente */
+        max-width: 100%; /* Asegura que no se salga horizontalmente */
+        height: auto; /* Ajusta la altura automáticamente */
+        max-height: 90vh; /* Limita la altura máxima a 90% de la ventana */
+        padding: 10px; /* Reduce el padding */
+        top: 50%; /* Ajusta la posición vertical */
+        left: 50%; /* Ajusta la posición horizontal */
+        transform: translate(-50%, -50%); /* Centra la ventana */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    #camera {
+        width: 80%; /* Asegura que la cámara se ajuste al contenedor */
+        height: auto; /* Mantiene la proporción de la cámara */
+        max-height: 80vh; /* Limita la altura máxima de la cámara */
+    }
+
+    #closeCamera {
+        padding: 8px 12px; /* Ajusta el padding del botón de cerrar */
+        font-size: 0.9em; /* Ajusta el tamaño de fuente */
+    }
+
+        #titulo {
+            position: absolute;
+            top: 28px;
+            /* Ajusta la distancia desde la parte superior */
+            right: 26px;
+            /* Ajusta la distancia desde el borde derecho */
+            text-align: right;
+            /* Alinea el texto a la derecha */
+            margin: 0;
+            padding: 0;
+            z-index: 1000;
+            /* Asegura que el título esté encima de otros elementos */
+        }
+
+        #titulo h1 {
+            font-family: 'Arial', sans-serif;
+            font-size: 1.9 rem;
+            /* Tamaño de letra ligeramente mayor */
+            font-weight: bold;
+            letter-spacing: 3px;
+            /* Espaciado entre letras */
+            text-transform: uppercase;
+            /* Hace el texto en mayúsculas */
+            margin: 0;
+            /* Elimina el margen por defecto */
+            color: #333;
+            /* Color gris oscuro */
+            position: relative;
+            /* Ajuste de posición */
+            top: -5px;
+            /* Sube la letra un poco */
+            animation: fadeIn 1.5s ease-in-out;
+            /* Animación de aparición */
+        }
+
+        @keyframes fadeIn {
+            0% {
+                opacity: 0;
+            }
+
+            100% {
+                opacity: 1;
+            }
+
+
+        }
+    }
+    </style>
+</head>
+
+<body>
+
+    <!-- Botón para abrir el menú -->
+    <button id="menuBtn">&#9776;</button>
+
+    <!-- Menú lateral -->
+    <div id="sidebar">
+        <button id="closeBtn">&times;</button>
+        <a href="index.html">Inicio</a>
+        <a href="camara.html">Registro de CURPs</a>
+        <a href="info.html">Localidades cercanas</a>
+    </div>
+
+
+    <div id="main-content"></div>
+    <div id="titulo">
+        <h1>AsisteID</h1>
+    </div>
+
+    <body>
+        <h1>Registro de CURP´s</h1>
+
+        <div class="botones">
+            <button onclick="startCamera()" class="scan-button">Escanear con Cámara</button>
+            <label for="qrInput" class="label-file">Elegir archivo</label>
+            <input type="file" id="qrInput" accept="image/*" style="display: none;">
+            <button class="delete-btn" onclick="deleteSelectedRows()">Eliminar Seleccionados</button>
+        </div>
+
+        <div class="table-container">
+            <table id="outputTable">
+                <thead>
+                    <tr>
+                        <th>Seleccionar</th>
+                        <th>Clave</th>
+                        <th>CURP´s Asociadas</th>
+                        <th>Apellido Paterno</th>
+                        <th>Apellido Materno</th>
+                        <th>Nombres</th>
+                        <th>Sexo</th>
+                        <th>Fecha de Nacimiento</th>
+                        <th>Entidad de Registro</th>
+                        <th>Homoclave</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    <!-- Aquí se agregarán las filas de datos dinámicamente -->
+                </tbody>
+            </table>
+        </div>
+
+        <div id="cameraContainer" style="display: none;">
+            <video id="camera" width="600" height="400"></video>
+            <button id="closeCamera" onclick="stopCamera()">Cerrar</button>
+        </div>
+
+        <script>
+            const video = document.getElementById("camera");
+            const tableBody = document.getElementById("tableBody");
+            const cameraContainer = document.getElementById("cameraContainer");
+
+            // Cargar datos almacenados al cargar la página
+            window.onload = function () {
+                loadStoredData();
+            };
+
+            // Manejador de eventos para input de archivo
+            document.getElementById("qrInput").addEventListener("change", handleFile);
+
+            function handleFile(event) {
+                const file = event.target.files[0];
+                if (!file) return;
+
+                const reader = new FileReader();
+                reader.onload = function (event) {
+                    const img = new Image();
+                    img.src = event.target.result;
+                    img.onload = function () {
+                        const canvas = document.createElement("canvas");
+                        canvas.width = img.width;
+                        canvas.height = img.height;
+                        const ctx = canvas.getContext("2d");
+                        ctx.drawImage(img, 0, 0);
+                        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                        const qrCode = jsQR(imageData.data, canvas.width, canvas.height);
+
+                        if (qrCode) {
+                            parseCURPData(qrCode.data);
+                        } else {
+                            alert("No QR code detected in the image.");
+                        }
+                    };
+                };
+                reader.readAsDataURL(file);
+            }
+
+            function startCamera() {
+                navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
+                    .then((stream) => {
+                        video.srcObject = stream;
+                        cameraContainer.style.display = "flex"; // Mostrar contenedor de cámara
+                        video.setAttribute("playsinline", true); // Compatibilidad con iOS
+                        video.play();
+                        requestAnimationFrame(scanQRCode);
+                    })
+                    .catch((err) => {
+                        alert("Camera access error: " + err);
+                    });
+            }
+
+            function scanQRCode() {
+                if (video.readyState === video.HAVE_ENOUGH_DATA) {
+                    const canvas = document.createElement("canvas");
+                    canvas.width = video.videoWidth;
+                    canvas.height = video.videoHeight;
+                    const ctx = canvas.getContext("2d");
+                    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                    const qrCode = jsQR(imageData.data, canvas.width, canvas.height);
+
+                    if (qrCode) {
+                        parseCURPData(qrCode.data);
+                        stopCamera();
+                        return;
+                    }
+                }
+                requestAnimationFrame(scanQRCode);
+            }
+
+            function stopCamera() {
+                const stream = video.srcObject;
+                if (stream) {
+                    const tracks = stream.getTracks();
+                    tracks.forEach(track => track.stop());
+                }
+                cameraContainer.style.display = "none"; // Ocultar contenedor de cámara
+                video.srcObject = null;
+            }
+
+            function parseCURPData(data) {
+                console.log("Datos escaneados:", data); // Debug para ver los datos brutos
+                const fields = data.split('|');
+
+                if (fields.length < 9) {
+                    alert("Formato de CURP no reconocido.");
+                    return;
+                }
+
+                const [clave, curp, apellidoP, apellidoM, nombres, sexo, fechaNacimiento, entidad, homoclave] = fields;
+                const curpData = {
+                    clave: clave || "",
+                    curp: curp || "",
+                    apellidoP: apellidoP || "",
+                    apellidoM: apellidoM || "",
+                    nombres: nombres || "",
+                    sexo: sexo || "",
+                    fechaNacimiento: fechaNacimiento || "",
+                    entidad: entidad || "",
+                    homoclave: homoclave || ""
+                };
+
+                console.log("Datos de CURP procesados:", curpData); // Debug para ver datos procesados
+
+                // Guardar la CURP en localStorage sin verificar duplicados
+                saveCurp(curpData);
+                loadStoredData();
+            }
+
+            function saveCurp(curpData) {
+                let curps = JSON.parse(localStorage.getItem("curps")) || [];
+
+                // Verificar si el CURP ya está registrado
+                const exists = curps.some(existingCurp =>
+                    existingCurp.clave === curpData.clave &&
+                    existingCurp.curp === curpData.curp &&
+                    existingCurp.apellidoP === curpData.apellidoP &&
+                    existingCurp.apellidoM === curpData.apellidoM &&
+                    existingCurp.nombres === curpData.nombres &&
+                    existingCurp.sexo === curpData.sexo &&
+                    existingCurp.fechaNacimiento === curpData.fechaNacimiento &&
+                    existingCurp.entidad === curpData.entidad &&
+                    existingCurp.homoclave === curpData.homoclave
+                );
+
+                if (exists) {
+                    // Mostrar mensaje en la página en lugar de una alerta
+                    showMessage("Este CURP ya está registrado.");
+                    return;
+                }
+
+                function showMessage(message) {
+                    // Crear un elemento de mensaje
+                    let messageElement = document.createElement("div");
+                    messageElement.textContent = message;
+
+                    // Establecer el estilo del mensaje
+                    messageElement.style.color = "white"; // Establecer el color del texto como negro
+                    messageElement.style.marginTop = "10px"; // Espacio superior
+                    messageElement.style.textAlign = "center"; // Centrar el texto
+
+                    // Añadir el mensaje al cuerpo de la página
+                    document.body.appendChild(messageElement);
+                }
+
+
+                // Guardar el nuevo CURP si no está duplicado
+                curps.push(curpData);
+                localStorage.setItem("curps", JSON.stringify(curps));
+            }
+
+            function showMessage(message) {
+                // Crear un contenedor de mensajes si no existe
+                let messageContainer = document.getElementById("messageContainer");
+                if (!messageContainer) {
+                    messageContainer = document.createElement("div");
+                    messageContainer.id = "messageContainer";
+                    document.body.appendChild(messageContainer);
+                }
+
+                // Mostrar el mensaje
+                messageContainer.innerText = message;
+                messageContainer.style.color = "red"; // Puedes personalizar el estilo del mensaje
+            }
+
+
+            function loadStoredData() {
+                const storedCurps = localStorage.getItem("curps");
+                tableBody.innerHTML = ""; // Limpiar la tabla
+
+                if (storedCurps) {
+                    let curps = JSON.parse(storedCurps);
+                    curps = curps.filter(curpData => curpData && curpData.clave); // Filtrar vacíos
+                    curps.sort((a, b) => a.clave.localeCompare(b.clave)); // Ordenar alfabéticamente
+
+                    curps.forEach(curpData => displayData(curpData));
+                }
+            }
+
+            function displayData(curpData) {
+                const row = document.createElement("tr");
+                row.innerHTML = `
+        <td><input type="checkbox" class="select-row"></td>
+        <td>${curpData.clave || ""}</td>
+        <td>${curpData.curp || ""}</td>
+        <td>${curpData.apellidoP || ""}</td>
+        <td>${curpData.apellidoM || ""}</td>
+        <td>${curpData.nombres || ""}</td>
+        <td>${curpData.sexo || ""}</td>
+        <td>${curpData.fechaNacimiento || ""}</td>
+        <td>${curpData.entidad || ""}</td>
+        <td>${curpData.homoclave || ""}</td>
+    `;
+                tableBody.appendChild(row);
+            }
+
+            function deleteSelectedRows() {
+                const selectedCheckboxes = document.querySelectorAll('.select-row:checked');
+                let curps = JSON.parse(localStorage.getItem('curps')) || [];
+                selectedCheckboxes.forEach(checkbox => {
+                    const row = checkbox.parentElement.parentElement;
+                    const curp = row.children[2].textContent;
+                    curps = curps.filter(curpData => curpData.curp !== curp);
+                    row.remove();
+                });
+                localStorage.setItem('curps', JSON.stringify(curps));
+            }
+
+            const menuBtn = document.getElementById('menuBtn');
+            const closeBtn = document.getElementById('closeBtn');
+            const sidebar = document.getElementById('sidebar');
+
+            menuBtn.addEventListener('click', () => {
+                sidebar.classList.toggle('open');
+            });
+
+            closeBtn.addEventListener('click', () => {
+                sidebar.classList.remove('open');
+            });
+
+        </script>
+    </body>
+
+</html>
